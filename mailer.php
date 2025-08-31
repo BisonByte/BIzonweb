@@ -1,4 +1,9 @@
 <?php
+require __DIR__ . '/vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
 // Load environment variables from .env file if present
 if (file_exists(__DIR__ . '/.env')) {
     $env = parse_ini_file(__DIR__ . '/.env');
@@ -47,14 +52,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email_content .= "Subject: $subject\n";
     $email_content .= "Message:\n$message\n";
 
-    // Build the email headers.
-    $email_headers = "From: $name <$email>";
+    try {
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = getenv('SMTP_HOST');
+        $mail->SMTPAuth = true;
+        $mail->Username = getenv('SMTP_USERNAME');
+        $mail->Password = getenv('SMTP_PASSWORD');
+        $mail->SMTPSecure = getenv('SMTP_ENCRYPTION') ?: PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = getenv('SMTP_PORT') ?: 587;
 
-    // Send the email.
-    if (mail($recipient, $email_subject, $email_content, $email_headers)) {
+        $fromAddress = getenv('SMTP_FROM') ?: $email;
+        $mail->setFrom($fromAddress, $name);
+        $mail->addReplyTo($email, $name);
+        $mail->addAddress($recipient);
+
+        $mail->Subject = $email_subject;
+        $mail->Body = $email_content;
+        $mail->isHTML(false);
+
+        $mail->send();
         http_response_code(200);
         echo "Your message has been sent. Thank You!";
-    } else {
+    } catch (Exception $e) {
         http_response_code(500);
         echo "Oops! Something went wrong and we couldn't send your message.";
     }
