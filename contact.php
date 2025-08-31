@@ -1,6 +1,11 @@
+<?php
+session_start();
+$csrf_token = bin2hex(random_bytes(32));
+$_SESSION['csrf_token'] = $csrf_token;
+?>
 <!DOCTYPE html>
 <html lang="en">
-    <!--<< Header Area >>-->   
+    <!--<< Header Area >>-->
     <?php $title='Digtek - Digital Marketing Agency PHP Template'?>
     <?php include './partials/head.php'?>
     <body >
@@ -258,6 +263,7 @@
                                     Nullam varius, erat quis iaculis dictum, eros urna varius eros, ut blandit felis odio in turpis. Quisque rhoncus, eros in auctor ultrices,
                                 </p>
                                 <form id="contact-form" action="mailer.php" method="POST" class="contact-form-items">
+                                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrf_token); ?>">
                                     <div class="row g-4">
                                         <div class="col-lg-6 wow fadeInUp" data-wow-delay=".3s">
                                             <div class="form-clt">
