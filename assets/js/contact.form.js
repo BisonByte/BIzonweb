@@ -10,8 +10,10 @@
     $(form).submit(function (e) {
         e.preventDefault(); // Stop the default form submission
 
-        // Serialize the form data.
-        var formData = $(form).serialize();
+        // Serialize the form data without the CSRF token.
+        var formData = $(form).find(':input').not('input[name="csrf_token"]').serialize();
+        // Append the CSRF token.
+        formData += '&csrf_token=' + encodeURIComponent($('input[name="csrf_token"]').val());
 
         // Submit the form using AJAX.
         $.ajax({

@@ -12,12 +12,20 @@ if (file_exists(__DIR__ . '/.env')) {
 
 // Only process POST requests.
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Get the form fields and remove whitespace.
-    $name = strip_tags(trim($_POST["name"] ?? ''));
+    session_start();
+    if (!isset($_POST['csrf_token'], $_SESSION['csrf_token']) ||
+        !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        http_response_code(403);
+        echo "Invalid CSRF token.";
+        exit;
+    }
+
+    // Get the form fields and remove whitespace with additional sanitization.
+    $name = filter_var(trim($_POST["name"] ?? ''), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
     $name = str_replace(array("\r", "\n"), array(" ", " "), $name);
     $email = filter_var(trim($_POST["email"] ?? ''), FILTER_SANITIZE_EMAIL);
-    $subject = isset($_POST["subject"]) ? trim($_POST["subject"]) : 'No Subject';
-    $message = trim($_POST["message"] ?? '');
+    $subject = filter_var(trim($_POST["subject"] ?? 'No Subject'), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
+    $message = filter_var(trim($_POST["message"] ?? ''), FILTER_SANITIZE_FULL_SPECIAL_CHARS);
 
     // Check that data was sent to the mailer.
     if (empty($name) || empty($message) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
