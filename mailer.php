@@ -1,4 +1,15 @@
 <?php
+// Load environment variables from .env file if present
+if (file_exists(__DIR__ . '/.env')) {
+    $env = parse_ini_file(__DIR__ . '/.env');
+    if ($env !== false) {
+        foreach ($env as $key => $value) {
+            putenv("$key=$value");
+            $_ENV[$key] = $value;
+        }
+    }
+}
+
 // Only process POST requests.
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get the form fields and remove whitespace.
@@ -16,8 +27,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
-    // Set the recipient email address.
-    $recipient = "mukitbd73@gmail.com";
+    // Set the recipient email address from environment variable.
+    $recipient = getenv('MAIL_RECIPIENT');
 
     // Set the email subject.
     $email_subject = "New contact from $name";
